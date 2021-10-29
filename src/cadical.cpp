@@ -4,6 +4,7 @@
 
 #include "internal.hpp"
 #include "signal.hpp"           // Separate, only need for apps.
+#include "edge_parser.cpp"
 
 /*------------------------------------------------------------------------*/
 
@@ -338,6 +339,7 @@ int App::main (int argc, char ** argv) {
   const char * preprocessing_specified = 0, * optimization_specified = 0;
   const char * read_solution_path = 0, * write_result_path = 0;
   const char * dimacs_path = 0, * proof_path = 0;
+  std::string edge_file_path;
   bool proof_specified = false, dimacs_specified = false;
   int optimize = 0, preprocessing = 0, localsearch = 0;
   const char * output_path = 0, * extension_path = 0;
@@ -345,11 +347,10 @@ int App::main (int argc, char ** argv) {
   const char * conflict_limit_specified = 0;
   const char * decision_limit_specified = 0;
   const char * localsearch_specified = 0;
-#ifndef __MINGW32__
   const char * time_limit_specified = 0;
-#endif
   bool witness = true, less = false;
   const char * dimacs_name, * err;
+  int numColors = -1;
 
   for (int i = 1; i < argc; i++) {
     if (!strcmp (argv[i], "-h") ||
@@ -358,6 +359,25 @@ int App::main (int argc, char ** argv) {
         !strcmp (argv[i], "--version") ||
         !strcmp (argv[i], "--copyright")) {
       APPERR ("can only use '%s' as single first option", argv[i]);
+    } else if (!strcmp(argv[i], "-color")) {
+      if (++i == argc)
+      {
+        APPERR ("first argument to -color missing");
+      }
+      else
+      {
+        numColors = std::atoi(argv[i]);
+        if (++i == argc)
+        {
+          APPERR ("file argument to -color missing");
+        }
+        else
+        {
+          edge_file_path = argv[i];
+          std::string dimacs_file_path = parse_edge_file(numColors, edge_file_path);
+          dimacs_path = dimacs_file_path.c_str();
+        }
+      }
     } else if (!strcmp (argv[i], "-")) {
       if (proof_specified) APPERR ("too many arguments");
       else if (!dimacs_specified) dimacs_specified = true;
