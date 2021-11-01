@@ -367,16 +367,6 @@ int App::main (int argc, char ** argv) {
       else
       {
         numColors = std::atoi(argv[i]);
-        if (++i == argc)
-        {
-          APPERR ("file argument to -color missing");
-        }
-        else
-        {
-          edge_file_path = argv[i];
-          std::string dimacs_file_path = parse_edge_file(numColors, edge_file_path);
-          dimacs_path = dimacs_file_path.c_str();
-        }
       }
     } else if (!strcmp (argv[i], "-")) {
       if (proof_specified) APPERR ("too many arguments");
@@ -658,8 +648,16 @@ int App::main (int argc, char ** argv) {
   bool incremental;
   vector<int> cube_literals;
   if (dimacs_path)
+  {
+    if (numColors > 0)
+    {
+      std::string dimacs_file_path = parse_edge_file(numColors, dimacs_path);
+      dimacs_path = dimacs_file_path.c_str();
+    }
+
     err = solver->read_dimacs(dimacs_path, max_var, force_strict_parsing,
                             incremental, cube_literals);
+  }
   else
     err = solver->read_dimacs(stdin, dimacs_name, max_var, force_strict_parsing,
                             incremental, cube_literals);
