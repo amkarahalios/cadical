@@ -1,4 +1,6 @@
 #include "internal.hpp"
+#include <set>
+#include <algorithm>
 
 namespace CaDiCaL {
 
@@ -223,7 +225,7 @@ inline void Internal::bump_clause (Clause * c) {
 // called 'glue', or 'LBD').
 
 inline void
-Internal::analyze_literal (int lit, int & open) {
+Internal::analyze_literal (int lit, int & open, std::set<int>& currentEndLiterals) {
   assert (lit);
   Flags & f = flags (lit);
   if (f.seen) return;
@@ -231,7 +233,11 @@ Internal::analyze_literal (int lit, int & open) {
   if (!v.level) return;
   assert (val (lit) < 0);
   assert (v.level <= level);
-  if (v.level < level) clause.push_back (lit);
+  if (v.level < level)
+  {
+    currentEndLiterals.insert(lit);
+    //clause.push_back(lit);
+  }
   Level & l = control[v.level];
   if (!l.seen.count++) {
     LOG ("found new level %d contributing to conflict", v.level);
@@ -245,12 +251,12 @@ Internal::analyze_literal (int lit, int & open) {
 }
 
 inline void
-Internal::analyze_reason (int lit, Clause * reason, int & open) {
+Internal::analyze_reason (int lit, Clause * reason, int & open, std::set<int>& endLiterals) {
   assert (reason);
   bump_clause (reason);
   for (const auto & other : *reason)
     if (other != lit)
-      analyze_literal (other, open);
+      analyze_literal (other, open, endLiterals);
 }
 
 /*------------------------------------------------------------------------*/
@@ -699,8 +705,17 @@ void Internal::analyze () {
   int open = 0;                 // Seen but not processed on this level.
   int uip = 0;                  // The first UIP literal.
 
+  for (const auto trailMem : trail)
+  {
+    LOG ("trail mem: %d", trailMem);
+    LOG ("trail mem seen: %d", flags (trailMem).seen);
+    LOG ("trail mem level: %d", var (trailMem).level);
+    LOG ("trail mem val: %d", val (trailMem));
+  }
+
+  std::set<int> currentEndLiterals;
   for (;;) {
-    analyze_reason (uip, reason, open);
+    analyze_reason (uip, reason, open, currentEndLiterals);
     uip = 0;
     while (!uip) {
       assert (i > 0);
@@ -708,12 +723,44 @@ void Internal::analyze () {
       if (!flags (lit).seen) continue;
       if (var (lit).level == level) uip = lit;
     }
+    // new stopping criteria is all positive literals in clause
     if (!--open) break;
     reason = var (uip).reason;
     LOG (reason, "analyzing %d reason", uip);
   }
-  LOG ("first UIP %d", uip);
+  LOG ("first uip %d", uip);
+  LOG ("first uip val %d", val(uip));
   clause.push_back (-uip);
+  LOG ("updating UIP to make all negative %d", uip);
+
+  for (const auto l : currentEndLiterals)
+  {
+    LOG ("end literal: %d", val(l) * l);
+  }
+
+  // remove any positive literals for current end literals
+  while (!currentEndLiterals.empty())
+  {
+    // remove literal from currentEndLiterals
+    int someLiteral = *currentEndLiterals.begin();
+
+    // if negative, add to clause
+    if (someLiteral < 0)
+    {
+      clause.push_back(someLiteral);
+      currentEndLiterals.erase(someLiteral);
+      LOG ("add literal: %d", someLiteral);
+    }
+
+    // if positive, add reason to currentEndLiterals
+    if (someLiteral > 0)
+    {
+      LOG ("analyze literal: %d", someLiteral);
+      reason = var (someLiteral).reason;
+      analyze_reason (someLiteral, reason, open, currentEndLiterals);
+      currentEndLiterals.erase(someLiteral);
+    }
+  }
 
   // Update glue and learned (1st UIP literals) statistics.
   //

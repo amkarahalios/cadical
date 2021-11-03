@@ -34,6 +34,7 @@ extern "C" {
 #include <queue>
 #include <string>
 #include <vector>
+#include <set>
 
 /*------------------------------------------------------------------------*/
 
@@ -556,8 +557,8 @@ struct Internal {
   bool bump_also_reason_literal (int lit);
   void bump_also_reason_literals (int lit, int limit);
   void bump_also_all_reason_literals ();
-  void analyze_literal (int lit, int & open);
-  void analyze_reason (int lit, Clause *, int & open);
+  void analyze_literal (int lit, int & open, std::set<int>& endLiterals);
+  void analyze_reason (int lit, Clause *, int & open, std::set<int>& endLiterals);
   Clause * new_driving_clause (const int glue, int & jump);
   int find_conflict_level (int & forced);
   int determine_actual_backtrack_level (int jump);
