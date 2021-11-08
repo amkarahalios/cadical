@@ -1,4 +1,5 @@
 #include "internal.hpp"
+#include "convert_to_merge.cpp"
 #include <set>
 #include <algorithm>
 
@@ -739,15 +740,16 @@ void Internal::analyze () {
   }
 
   // remove any positive literals for current end literals
+  std::vector<int> ourClause;
   while (!currentEndLiterals.empty())
   {
     // remove literal from currentEndLiterals
     int someLiteral = *currentEndLiterals.begin();
 
-    // if negative, add to clause
+    // if negative, add to ourClause
     if (someLiteral < 0)
     {
-      clause.push_back(someLiteral);
+      ourClause.push_back(someLiteral);
       currentEndLiterals.erase(someLiteral);
       LOG ("add literal: %d", someLiteral);
     }
@@ -760,6 +762,12 @@ void Internal::analyze () {
       analyze_reason (someLiteral, reason, open, currentEndLiterals);
       currentEndLiterals.erase(someLiteral);
     }
+  }
+
+  std::vector<int> mergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals);
+  for (int mergeClauseLiteral : mergeClause)
+  {
+    clause.push_back(mergeClauseLiteral);
   }
 
   // Update glue and learned (1st UIP literals) statistics.

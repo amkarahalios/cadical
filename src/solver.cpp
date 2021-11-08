@@ -402,6 +402,16 @@ int Solver::vars () {
   return res;
 }
 
+void Solver::setNumColors(int _numColors)
+{
+  internal->numColors = _numColors;
+}
+
+void Solver::setNumLiterals(int _numLiterals)
+{
+  internal->numLiterals = _numLiterals;
+}
+
 void Solver::reserve (int min_max_var) {
   TRACE ("reserve", min_max_var);
   REQUIRE_VALID_STATE ();

@@ -651,8 +651,11 @@ int App::main (int argc, char ** argv) {
   {
     if (numColors > 0)
     {
-      std::string dimacs_file_path = parse_edge_file(numColors, dimacs_path);
+      int numLiterals = 0;
+      std::string dimacs_file_path = parse_edge_file(numColors, dimacs_path, numLiterals);
       dimacs_path = dimacs_file_path.c_str();
+      solver->setNumColors(numColors);
+      solver->setNumLiterals(numLiterals);
     }
 
     err = solver->read_dimacs(dimacs_path, max_var, force_strict_parsing,

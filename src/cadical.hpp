@@ -425,6 +425,9 @@ public:
 
   static bool is_valid_long_option (const char * arg);
 
+  void setNumColors(int _numColors);
+  void setNumLiterals(int _numLiterals);
+
   // Get the current value of the option 'name'.  If 'name' is invalid then
   // zero is returned.  Here '--...' arguments as invalid options.
   //
