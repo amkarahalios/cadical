@@ -731,7 +731,7 @@ void Internal::analyze () {
   }
   LOG ("first uip %d", uip);
   LOG ("first uip val %d", val(uip));
-  clause.push_back (-uip);
+  currentEndLiterals.insert(-uip);
   LOG ("updating UIP to make all negative %d", uip);
 
   for (const auto l : currentEndLiterals)
@@ -764,7 +764,10 @@ void Internal::analyze () {
     }
   }
 
+  LOG(ourClause, "negative literals clause");
   std::vector<int> mergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals);
+  LOG(mergeClause, "converted merge clause");
+
   for (int mergeClauseLiteral : mergeClause)
   {
     clause.push_back(mergeClauseLiteral);
