@@ -28,6 +28,7 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
     {   
         return result;
     }
+
     std::vector<int> OneOfEachColor;
     // add positive merge variables for vertices with the same color
     std::map<int, std::vector<int> >::iterator it;
@@ -39,10 +40,10 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
         int vertexNumi;
         vertexNumj = std::ceil(-1.0 * value[0] / numberOfColors);
         OneOfEachColor.push_back(value[0]);
-        if (value.size()==1)
-        {
-            result.push_back(value[0]);
-        }
+        //if (value.size()==1)
+        //{
+            //result.push_back(value[0]);
+        //}
         for (int i = 0; i < value.size() - 1; i++)
         {
             vertexNumi = vertexNumj;
