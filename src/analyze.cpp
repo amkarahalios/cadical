@@ -385,7 +385,6 @@ Clause * Internal::new_driving_clause (const int glue, int & jump) {
     res = 0;
 
   } else {
-
     assert (clause.size () > 1);
 
     // We have to get the last assigned literals into the watch position.
@@ -736,7 +735,8 @@ void Internal::analyze () {
 
   for (const auto l : currentEndLiterals)
   {
-    LOG ("end literal: %d", val(l) * l);
+    LOG ("end literal: %d", l);
+    LOG ("end literal val l: %d", val(l) * l);
   }
 
   // remove any positive literals for current end literals
@@ -747,7 +747,8 @@ void Internal::analyze () {
     int someLiteral = *currentEndLiterals.begin();
 
     // if negative, add to ourClause
-    if (someLiteral < 0)
+    //if ((someLiteral < 0))
+    if ((someLiteral < 0) || (someLiteral > numLiterals * numColors))
     {
       ourClause.push_back(someLiteral);
       currentEndLiterals.erase(someLiteral);
@@ -802,9 +803,10 @@ void Internal::analyze () {
       bump_variables();
 
     if (external->learner) external->export_learned_large_clause (clause);
-  } else if (external->learner)
-    external->export_learned_unit_clause(-uip);
-
+  } else if (external->learner) {
+    LOG("merge clause %d of size 1", clause[0]);
+    external->export_learned_unit_clause(clause[0]);
+  }
   // Update actual size statistics.
   //
   stats.units    += (size == 1);
@@ -815,6 +817,7 @@ void Internal::analyze () {
   // flipped 1st UIP literal.
   //
   int jump;
+  // Clause * driving_clause = 
   Clause * driving_clause = new_driving_clause (glue, jump);
   UPDATE_AVERAGE (averages.current.jump, jump);
 

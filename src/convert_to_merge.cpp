@@ -5,17 +5,19 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <set>
 
 std::vector<int> convert_to_merge_variable(std::vector<int> literals, int numberOfColors, int numberOfVertices)
 {
     std::vector<int> result;
+    std::set<int> pre_result;
     std::map<int, std::vector<int> > colorVertexMap;
     for (int ind = 0; ind < literals.size(); ind++)
     {   
-        //if it's a merge variables just add it to the return list
+        //if it's a merge variables or positive just add it to the return list
         if (std::abs(literals[ind]) > numberOfColors * numberOfVertices || literals[ind]>0)
         {
-            result.push_back(literals[ind]);
+            pre_result.insert(literals[ind]);
         }
         else if (literals[ind] < 0)
         {
@@ -28,7 +30,6 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
     {   
         return result;
     }
-
     std::vector<int> OneOfEachColor;
     // add positive merge variables for vertices with the same color
     std::map<int, std::vector<int> >::iterator it;
@@ -42,13 +43,13 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
         OneOfEachColor.push_back(value[0]);
         //if (value.size()==1)
         //{
-            //result.push_back(value[0]);
+            //pre_result.insert(value[0]);
         //}
         for (int i = 0; i < value.size() - 1; i++)
         {
             vertexNumi = vertexNumj;
             vertexNumj = std::ceil(-1.0 * value[i + 1] / numberOfColors);
-            result.push_back(-(numberOfColors * numberOfVertices + (std::min(vertexNumi, vertexNumj) - 1) * numberOfVertices + std::max(vertexNumi, vertexNumj)));
+            pre_result.insert(-(numberOfColors * numberOfVertices + (std::min(vertexNumi, vertexNumj) - 1) * numberOfVertices + std::max(vertexNumi, vertexNumj)));
         }
     }
 
@@ -59,9 +60,11 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
         {
             int vertexNumi = std::ceil(-1.0 * OneOfEachColor[i] / numberOfColors);
             int vertexNumj = std::ceil(-1.0 * OneOfEachColor[j] / numberOfColors);
-            result.push_back(numberOfColors * numberOfVertices + (std::min(vertexNumi, vertexNumj) - 1) * numberOfVertices + std::max(vertexNumi, vertexNumj));
+            pre_result.insert(numberOfColors * numberOfVertices + (std::min(vertexNumi, vertexNumj) - 1) * numberOfVertices + std::max(vertexNumi, vertexNumj));
         }
     }
+
+    std::copy(pre_result.begin(), pre_result.end(), std::back_inserter(result));
     return result;
 }
 /*

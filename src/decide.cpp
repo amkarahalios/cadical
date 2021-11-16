@@ -12,7 +12,8 @@ namespace CaDiCaL {
 int Internal::next_decision_variable_on_queue () {
   int64_t searched = 0;
   int res = queue.unassigned;
-  while (val (res))
+  // while (val (res))
+  while (val(res)|| (res > (numColors*numLiterals)))
     res = link (res).prev, searched++;
   if (searched) {
     stats.searched += searched;
