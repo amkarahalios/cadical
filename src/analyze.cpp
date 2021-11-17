@@ -769,9 +769,23 @@ void Internal::analyze () {
   std::vector<int> mergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals);
   LOG(mergeClause, "converted merge clause");
 
-  for (int mergeClauseLiteral : mergeClause)
+  // add negative literal clause if...
+  // more than two merge literals in merge clause relate to uip
+  int uipVertex = std::ceil(uip / numColors);
+  int numMergeLiteralsUip = 0;
+  bool requireNegativeClause = false;
+  for (int mergeLiteral : mergeClause)
   {
-    clause.push_back(mergeClauseLiteral);
+    int mergeLiteralVertex1 = std::ceil((mergeLiteral - (numColors * numLiterals)) / numLiterals);
+    int mergeLiteralVertex2 = (mergeLiteral - (numColors * numLiterals)) - ((mergeLiteralVertex1-1) * numLiterals);
+    if ((mergeLiteralVertex1 == uipVertex) || (mergeLiteralVertex2 == uipVertex))
+    {
+      numMergeLiteralsUip = numMergeLiteralsUip + 1;
+    }
+  }
+  if (numMergeLiteralsUip >= 2)
+  {
+    requireNegativeClause = true;
   }
 
   // Update glue and learned (1st UIP literals) statistics.
@@ -785,6 +799,22 @@ void Internal::analyze () {
   stats.learned.clauses++;
   assert (glue < size);
 
+  if (requireNegativeClause)
+  {
+    for (int negativeClauseLit : ourClause)
+    {
+      clause.push_back(negativeClauseLit);
+    }
+    LOG(clause, "learning negative clause");
+  }
+  else
+  {
+    for (int mergeClauseLiteral : mergeClause)
+    {
+      clause.push_back(mergeClauseLiteral);
+    }
+    LOG(clause, "learning merge clause");
+  }
 
   // Minimize the 1st UIP clause as pioneered by Niklas Soerensson in
   // MiniSAT and described in our joint SAT'09 paper.
@@ -836,6 +866,18 @@ void Internal::analyze () {
   clear_analyzed_levels ();
   clause.clear ();
   conflict = 0;
+
+  // also add the merge clause if we used the negative clause
+  if (requireNegativeClause)
+  {
+    for (int mergeClauseLiteral : mergeClause)
+    {
+      clause.push_back(mergeClauseLiteral);
+    }
+    LOG(clause, "learning merge clause on top of negative clause");
+    new_learned_redundant_clause(glue);
+    clause.clear();
+  }
 
   STOP (analyze);
 
