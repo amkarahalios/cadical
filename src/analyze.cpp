@@ -788,17 +788,6 @@ void Internal::analyze () {
     requireNegativeClause = true;
   }
 
-  // Update glue and learned (1st UIP literals) statistics.
-  //
-  int size = (int) clause.size ();
-  const int glue = (int) levels.size () - 1;
-  LOG (clause, "1st UIP size %d and glue %d clause", size, glue);
-  UPDATE_AVERAGE (averages.current.glue.fast, glue);
-  UPDATE_AVERAGE (averages.current.glue.slow, glue);
-  stats.learned.literals += size;
-  stats.learned.clauses++;
-  assert (glue < size);
-
   if (requireNegativeClause)
   {
     for (int negativeClauseLit : ourClause)
@@ -815,6 +804,17 @@ void Internal::analyze () {
     }
     LOG(clause, "learning merge clause");
   }
+
+  // Update glue and learned (1st UIP literals) statistics.
+  //
+  int size = (int) clause.size ();
+  const int glue = (int) levels.size () - 1;
+  LOG (clause, "1st UIP size %d and glue %d clause", size, glue);
+  UPDATE_AVERAGE (averages.current.glue.fast, glue);
+  UPDATE_AVERAGE (averages.current.glue.slow, glue);
+  stats.learned.literals += size;
+  stats.learned.clauses++;
+  assert (glue < size);
 
   // Minimize the 1st UIP clause as pioneered by Niklas Soerensson in
   // MiniSAT and described in our joint SAT'09 paper.

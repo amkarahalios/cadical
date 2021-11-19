@@ -594,7 +594,7 @@ int Internal::solve (bool preprocess_only) {
   if (!res) res = preprocess ();
   if (!preprocess_only) {
     if (!res) res = local_search ();
-    if (!res) res = lucky_phases ();
+    //if (!res) res = lucky_phases ();
     if (!res) res = cdcl_loop_with_inprocessing ();
   }
   reset_solving ();
