@@ -12,10 +12,11 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
     std::vector<int> result;
     std::set<int> pre_result;
     std::map<int, std::vector<int> > colorVertexMap;
+    int numNotMergeLits = 0;
     for (int ind = 0; ind < literals.size(); ind++)
     {   
         //if it's a merge variables or positive just add it to the return list
-        if (std::abs(literals[ind]) > numberOfColors * numberOfVertices || literals[ind]>0)
+        if ((std::abs(literals[ind]) > (numberOfColors * numberOfVertices)) || (literals[ind]>0))
         {
             pre_result.insert(literals[ind]);
         }
@@ -24,12 +25,27 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
             int color = (std::abs(literals[ind]) % numberOfColors);
             // std::cout << std::to_string(literals[ind]) << "has color" << std::to_string(color) <<", is vertex "<< std::to_string(std::ceil(-1.0*literals[ind]/numberOfColors)) <<std::endl;
             colorVertexMap[color].push_back(literals[ind]);
+            numNotMergeLits = numNotMergeLits + 1;
         }
     }
     if (colorVertexMap.size() == 0)
-    {   
+    {
+        for (int resLit : literals)
+        {
+          result.push_back(resLit);
+        }
         return result;
     }
+
+    if (numNotMergeLits == 1)
+    {
+        for (int lit : literals)
+        {
+          result.push_back(lit);
+        }
+        return result;
+    }
+
     std::vector<int> OneOfEachColor;
     // add positive merge variables for vertices with the same color
     std::map<int, std::vector<int> >::iterator it;

@@ -136,6 +136,14 @@ std::string parse_edge_file(int numberOfColors, std::string inputFileName, int &
       literals.push_back(mergeLiteral);
       if (vertexNum1 < vertexNum2)
       {
+        // add unit clauses for edges
+        if (edgeMatrix[vertexNum1][vertexNum2])
+        {
+          std::vector<int> edgeLiterals;
+          edgeLiterals.push_back(mergeLiteral * -1);
+          mergeClauses.push_back(edgeLiterals);
+        }
+
         for (int colorNum = 0; colorNum < numberOfColors; ++colorNum)
         {
           // If the vertices have same color, force merge literal to be true

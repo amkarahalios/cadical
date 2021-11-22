@@ -123,7 +123,10 @@ void Internal::search_assume_decision (int lit) {
 
 void Internal::search_assign_driving (int lit, Clause * c) {
   require_mode (SEARCH);
-  search_assign (lit, c);
+  if (!makeMergeDecisions)
+  {
+    search_assign (lit, c);
+  }
 }
 
 /*------------------------------------------------------------------------*/

@@ -399,6 +399,11 @@ Clause * Internal::new_driving_clause (const int glue, int & jump) {
            analyze_trail_negative_rank (this), analyze_trail_larger (this));
 
     jump = var (clause[1]).level;
+    if (makeMergeDecisions)
+    {
+      jump = jump - 1;
+    }
+
     res = new_learned_redundant_clause (glue);
     res->used = 1 + (glue <= opts.reducetier2glue);
   }
@@ -747,16 +752,14 @@ void Internal::analyze () {
     int someLiteral = *currentEndLiterals.begin();
 
     // if negative, add to ourClause
-    //if ((someLiteral < 0))
-    if ((someLiteral < 0) || (someLiteral > numLiterals * numColors))
+    // if positive, add reason to currentEndLiterals
+    if ((someLiteral < 0) || (std::abs(someLiteral) > (numLiterals * numColors)))
     {
       ourClause.push_back(someLiteral);
       currentEndLiterals.erase(someLiteral);
       LOG ("add literal: %d", someLiteral);
     }
-
-    // if positive, add reason to currentEndLiterals
-    if (someLiteral > 0)
+    else if (someLiteral > 0)
     {
       LOG ("analyze literal: %d", someLiteral);
       reason = var (someLiteral).reason;
@@ -765,45 +768,79 @@ void Internal::analyze () {
     }
   }
 
+  // question: just 2 literals assigned different colors case?
+
+  // dont convert size 1 clause, so uip stays ok
   LOG(ourClause, "negative literals clause");
-  std::vector<int> mergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals);
-  LOG(mergeClause, "converted merge clause");
-
-  // add negative literal clause if...
-  // more than two merge literals in merge clause relate to uip
-  int uipVertex = std::ceil(uip / numColors);
-  int numMergeLiteralsUip = 0;
-  bool requireNegativeClause = false;
-  for (int mergeLiteral : mergeClause)
+  std::vector<int> mergeClause;
+  if (ourClause.size() == 1)
   {
-    int mergeLiteralVertex1 = std::ceil((mergeLiteral - (numColors * numLiterals)) / numLiterals);
-    int mergeLiteralVertex2 = (mergeLiteral - (numColors * numLiterals)) - ((mergeLiteralVertex1-1) * numLiterals);
-    if ((mergeLiteralVertex1 == uipVertex) || (mergeLiteralVertex2 == uipVertex))
-    {
-      numMergeLiteralsUip = numMergeLiteralsUip + 1;
-    }
-  }
-  if (numMergeLiteralsUip >= 2)
-  {
-    requireNegativeClause = true;
-  }
-
-  if (requireNegativeClause)
-  {
-    for (int negativeClauseLit : ourClause)
-    {
-      clause.push_back(negativeClauseLit);
-    }
-    LOG(clause, "learning negative clause");
+    mergeClause.push_back(ourClause[0]);
+    LOG(mergeClause, "copied merge clause");
   }
   else
   {
-    for (int mergeClauseLiteral : mergeClause)
+    std::vector<int> newMergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals);
+    for (int nmcLit : newMergeClause)
     {
-      clause.push_back(mergeClauseLiteral);
+      mergeClause.push_back(nmcLit);
     }
-    LOG(clause, "learning merge clause");
+    LOG(mergeClause, "converted merge clause");
   }
+
+  // add negative literal clause if...
+  // more than two merge literals in merge clause relate to uip
+  //int uipVertex = std::ceil(uip / numColors);
+  //int numMergeLiteralsUip = 0;
+  int uipLevel = 0;
+  std::vector<int> uipLits;
+  std::map<int,std::vector<int>> uipLitLevel;
+  for (int mergeLiteral : mergeClause)
+  {
+    int mergeLiteralLevel = var(mergeLiteral).level;
+    uipLitLevel[mergeLiteralLevel].push_back(mergeLiteral);
+  }
+
+  for (const auto levelLits : uipLitLevel)
+  {
+    if (levelLits.first > uipLevel)
+    {
+      uipLits.clear();
+      for (const auto levLit : levelLits.second)
+      {
+        uipLits.push_back(levLit);
+      }
+    }
+  }
+
+  for (const auto trailMem : trail)
+  {
+    if (std::abs(trailMem) == std::abs(uipLits[0]))
+    {
+      uip = trailMem;
+      LOG("Assigning new UIP: %d", uip);
+    }
+  }
+
+  if (uipLits.size() >= 2)
+  {
+    LOG("Will need to update decisions upon backtracking");
+    makeMergeDecisions = true;
+    for (int uipLit : uipLits)
+    {
+      if (std::abs(uip) != std::abs(uipLit))
+      {
+        LOG("Including: %d", uipLit * -1);
+        mergeDecisions.push_back(uipLit * -1);
+      }
+    }
+  }
+
+  for (int mergeClauseLiteral : mergeClause)
+  {
+    clause.push_back(mergeClauseLiteral);
+  }
+  LOG(clause, "learning merge clause");
 
   // Update glue and learned (1st UIP literals) statistics.
   //
@@ -866,18 +903,6 @@ void Internal::analyze () {
   clear_analyzed_levels ();
   clause.clear ();
   conflict = 0;
-
-  // also add the merge clause if we used the negative clause
-  if (requireNegativeClause)
-  {
-    for (int mergeClauseLiteral : mergeClause)
-    {
-      clause.push_back(mergeClauseLiteral);
-    }
-    LOG(clause, "learning merge clause on top of negative clause");
-    new_learned_redundant_clause(glue);
-    clause.clear();
-  }
 
   STOP (analyze);
 

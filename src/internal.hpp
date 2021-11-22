@@ -219,6 +219,8 @@ struct Internal {
   string prefix;                // verbose messages prefix
   int numColors;
   int numLiterals;
+  bool makeMergeDecisions;
+  std::vector<int> mergeDecisions;
 
   Internal * internal;          // proxy to 'this' in macros
   External * external;          // proxy to 'external' buddy in 'Solver'

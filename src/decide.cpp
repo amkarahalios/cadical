@@ -12,9 +12,24 @@ namespace CaDiCaL {
 int Internal::next_decision_variable_on_queue () {
   int64_t searched = 0;
   int res = queue.unassigned;
-  // while (val (res))
-  while (val(res)|| (res > (numColors*numLiterals)))
-    res = link (res).prev, searched++;
+
+  // keep making these decisions until done
+  if (makeMergeDecisions)
+  {
+    res = mergeDecisions.back();
+    mergeDecisions.pop_back();
+    LOG("change decision lit: %d", res);
+    if (mergeDecisions.empty())
+    {
+      makeMergeDecisions = false;
+    }
+  }
+  else
+  {
+    while (val(res)|| (res > (numColors*numLiterals)))
+      res = link (res).prev, searched++;
+  }
+
   if (searched) {
     stats.searched += searched;
     update_queue_unassigned (res);
