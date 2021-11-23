@@ -780,7 +780,7 @@ void Internal::analyze () {
   }
   else
   {
-    std::vector<int> newMergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals);
+    std::vector<int> newMergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals, existingEdges);
     for (int nmcLit : newMergeClause)
     {
       mergeClause.push_back(nmcLit);
@@ -813,12 +813,20 @@ void Internal::analyze () {
     }
   }
 
-  for (const auto trailMem : trail)
+  if ((uipLevel == 0) && (uipLits.empty()) && mergeClause.size() == 1)
   {
-    if (std::abs(trailMem) == std::abs(uipLits[0]))
+    uipLits.push_back(mergeClause[0]);
+    uip = 0;
+  }
+  else
+  {
+    for (const auto trailMem : trail)
     {
-      uip = trailMem;
-      LOG("Assigning new UIP: %d", uip);
+      if (std::abs(trailMem) == std::abs(uipLits[0]))
+      {
+        uip = trailMem;
+        LOG("Assigning new UIP: %d", uip);
+      }
     }
   }
 

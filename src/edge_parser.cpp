@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-std::string parse_edge_file(int numberOfColors, std::string inputFileName, int &numVertices)
+std::string parse_edge_file(int numberOfColors, std::string inputFileName, int &numVertices, std::vector<std::vector<bool> >& existingEdges)
 {
   std::ofstream myfile;
   std::string newFileName = inputFileName + ".cnf";
@@ -67,6 +67,16 @@ std::string parse_edge_file(int numberOfColors, std::string inputFileName, int &
     const std::pair<int, int> &edge = edges[edgeIndex];
     edgeMatrix[edge.first - 1][edge.second - 1] = true;
     edgeMatrix[edge.second - 1][edge.first - 1] = true;
+  }
+
+  existingEdges.resize(edgeMatrix.size());
+  for (int i=0; i<edgeMatrix.size(); ++i)
+  {
+    existingEdges[i].resize(edgeMatrix.size());
+    for (int j=0; j<edgeMatrix.size(); ++j)
+    {
+      existingEdges[i][j] = edgeMatrix[i][j];
+    }
   }
 
   // Encoding

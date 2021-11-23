@@ -7,7 +7,7 @@
 #include <map>
 #include <set>
 
-std::vector<int> convert_to_merge_variable(std::vector<int> literals, int numberOfColors, int numberOfVertices)
+std::vector<int> convert_to_merge_variable(std::vector<int> literals, int numberOfColors, int numberOfVertices, std::vector<std::vector<bool> >& existingEdges)
 {
     std::vector<int> result;
     std::set<int> pre_result;
@@ -70,14 +70,28 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
     }
 
     //add negative merge variables for vertices with differnt color
+    std::set<int> potentialRemovals;
     for (int i = 0; i < OneOfEachColor.size() - 1; i++)
     {
         for (int j = i + 1; j < OneOfEachColor.size(); j++)
         {
             int vertexNumi = std::ceil(-1.0 * OneOfEachColor[i] / numberOfColors);
             int vertexNumj = std::ceil(-1.0 * OneOfEachColor[j] / numberOfColors);
-            pre_result.insert(numberOfColors * numberOfVertices + (std::min(vertexNumi, vertexNumj) - 1) * numberOfVertices + std::max(vertexNumi, vertexNumj));
+            int mergeLiteral = (numberOfColors * numberOfVertices + (std::min(vertexNumi, vertexNumj) - 1) * numberOfVertices + std::max(vertexNumi, vertexNumj));
+            pre_result.insert(mergeLiteral);
+            if (existingEdges[vertexNumi - 1][vertexNumj - 1])
+            {
+              potentialRemovals.insert(mergeLiteral);
+            }
         }
+    }
+
+    if (potentialRemovals.size() < pre_result.size())
+    {
+      for (int removalLit : potentialRemovals)
+      {
+        pre_result.erase(removalLit);
+      }
     }
 
     std::copy(pre_result.begin(), pre_result.end(), std::back_inserter(result));

@@ -427,6 +427,7 @@ public:
 
   void setNumColors(int _numColors);
   void setNumLiterals(int _numLiterals);
+  void setExistingEdges(std::vector<std::vector<bool> > _existingEdges);
 
   // Get the current value of the option 'name'.  If 'name' is invalid then
   // zero is returned.  Here '--...' arguments as invalid options.

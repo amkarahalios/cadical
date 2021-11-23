@@ -412,6 +412,19 @@ void Solver::setNumLiterals(int _numLiterals)
   internal->numLiterals = _numLiterals;
 }
 
+void Solver::setExistingEdges(std::vector<std::vector<bool> > _existingEdges)
+{
+  internal->existingEdges.resize(_existingEdges.size());
+  for (int i=0; i<_existingEdges.size(); ++i)
+  {
+    internal->existingEdges[i].resize(_existingEdges.size());
+    for (int j=0; j<_existingEdges.size(); ++j)
+    {
+      internal->existingEdges[i][j] = _existingEdges[i][j];
+    }
+  }
+}
+
 void Solver::reserve (int min_max_var) {
   TRACE ("reserve", min_max_var);
   REQUIRE_VALID_STATE ();

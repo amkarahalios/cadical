@@ -219,6 +219,7 @@ struct Internal {
   string prefix;                // verbose messages prefix
   int numColors;
   int numLiterals;
+  std::vector<std::vector<bool> > existingEdges;
   bool makeMergeDecisions;
   std::vector<int> mergeDecisions;
 
