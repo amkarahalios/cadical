@@ -780,12 +780,64 @@ void Internal::analyze () {
   }
   else
   {
+    std::vector<int> convOurClause;
+    for (int negLit : ourClause)
+    {
+      int newLit = i2e[std::abs(negLit)];
+      if (newLit == 0)
+      {
+        continue;
+      }
+
+      if (negLit > 0)
+      {
+        convOurClause.push_back(newLit);
+      }
+      else
+      {
+        convOurClause.push_back(-1 * newLit);
+      }
+    }
+
+    ourClause.clear();
+    for (int negLit : convOurClause)
+    {
+      ourClause.push_back(negLit);
+    }
+    LOG(ourClause, "i2e negative literals clause");
+
     std::vector<int> newMergeClause = convert_to_merge_variable(ourClause, numColors, numLiterals, existingEdges);
     for (int nmcLit : newMergeClause)
     {
       mergeClause.push_back(nmcLit);
     }
     LOG(mergeClause, "converted merge clause");
+
+    std::vector<int> convMergeClause;
+    for (int mergeLit : mergeClause)
+    {
+      int newLit = external->e2i[std::abs(mergeLit)];
+      if (newLit == 0)
+      {
+        continue;
+      }
+
+      if (mergeLit > 0)
+      {
+        convMergeClause.push_back(newLit);
+      }
+      else
+      {
+        convMergeClause.push_back(-1 * newLit);
+      }
+    }
+
+    mergeClause.clear();
+    for (int mergeLit : convMergeClause)
+    {
+      mergeClause.push_back(mergeLit);
+    }
+    LOG(mergeClause, "converted with e2i");
   }
 
   // trail check
