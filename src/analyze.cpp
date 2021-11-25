@@ -788,6 +788,20 @@ void Internal::analyze () {
     LOG(mergeClause, "converted merge clause");
   }
 
+  // trail check
+  int currLev = 0;
+  for (const auto trailMem : trail)
+  {
+    if (var(trailMem).level > currLev)
+    {
+      currLev = var(trailMem).level;
+    }
+    else if ((var(trailMem).level < currLev) && (var(trailMem).level > 0))
+    {
+      LOG("ERROR: trail out of whack %d %d", var(trailMem).level, currLev);
+    }
+  }
+
   // add negative literal clause if...
   // more than two merge literals in merge clause relate to uip
   //int uipVertex = std::ceil(uip / numColors);
@@ -797,8 +811,15 @@ void Internal::analyze () {
   std::map<int,std::vector<int>> uipLitLevel;
   for (int mergeLiteral : mergeClause)
   {
-    int mergeLiteralLevel = var(mergeLiteral).level;
-    uipLitLevel[mergeLiteralLevel].push_back(mergeLiteral);
+    for (const auto trailMem : trail)
+    {
+      if (std::abs(trailMem) == std::abs(mergeLiteral))
+      {
+        int mergeLiteralLevel = var(mergeLiteral).level;
+        uipLitLevel[mergeLiteralLevel].push_back(mergeLiteral);
+        break;
+      }
+    }
   }
 
   for (const auto levelLits : uipLitLevel)
@@ -810,6 +831,7 @@ void Internal::analyze () {
       {
         uipLits.push_back(levLit);
       }
+      uipLevel = levelLits.first;
     }
   }
 
@@ -817,9 +839,12 @@ void Internal::analyze () {
   {
     uipLits.push_back(mergeClause[0]);
     uip = 0;
+    LOG("Special Case 1 - empty");
   }
   else
   {
+    LOG("first uip lits: %d", uipLits[0]);
+    LOG("level first uip lits: %d", uipLevel);
     for (const auto trailMem : trail)
     {
       if (std::abs(trailMem) == std::abs(uipLits[0]))

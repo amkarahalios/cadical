@@ -169,7 +169,7 @@ bool Internal::propagate () {
     const const_watch_iterator eow = ws.end ();
     watch_iterator j = ws.begin ();
     const_watch_iterator i = j;
-
+ 
     while (i != eow) {
 
       const Watch w = *j++ = *i++;

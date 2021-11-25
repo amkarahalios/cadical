@@ -14,10 +14,33 @@ int Internal::next_decision_variable_on_queue () {
   int res = queue.unassigned;
 
   // keep making these decisions until done
+  bool doNotUseDecision = true;
   if (makeMergeDecisions)
   {
-    res = mergeDecisions.back();
-    mergeDecisions.pop_back();
+    while (doNotUseDecision && (!mergeDecisions.empty()))
+    {
+      res = mergeDecisions.back();
+      mergeDecisions.pop_back();
+ 
+      if ((vals[vidx(res)] != 0) || (vals[-vidx(res)] != 0))
+      {
+        LOG("skip change because already set: %d", res);
+      }
+      else
+      {
+        doNotUseDecision = false;
+      }
+    }
+
+    if (doNotUseDecision)
+    {
+      LOG("no more merge decisions required");
+      makeMergeDecisions = false;
+    }
+  }
+
+  if (makeMergeDecisions)
+  {
     LOG("change decision lit: %d", res);
     if (mergeDecisions.empty())
     {
@@ -42,10 +65,48 @@ int Internal::next_decision_variable_on_queue () {
 //
 int Internal::next_decision_variable_with_best_score () {
   int res = 0;
-  for (;;) {
-    res = scores.front ();
-    if (!val (res)) break;
-    (void) scores.pop_front ();
+
+  // keep making these decisions until done
+  bool doNotUseDecision = true;
+  if (makeMergeDecisions)
+  {
+    while (doNotUseDecision && (!mergeDecisions.empty()))
+    {
+      res = mergeDecisions.back();
+      mergeDecisions.pop_back();
+ 
+      if ((vals[vidx(res)] != 0) || (vals[-vidx(res)] != 0))
+      {
+        LOG("skip change because already set: %d", res);
+      }
+      else
+      {
+        doNotUseDecision = false;
+      }
+    }
+
+    if (doNotUseDecision)
+    {
+      LOG("no more merge decisions required");
+      makeMergeDecisions = false;
+    }
+  }
+
+  if (makeMergeDecisions)
+  {
+    LOG("change decision lit: %d", res);
+    if (mergeDecisions.empty())
+    {
+      makeMergeDecisions = false;
+    }
+  }
+  else
+  {
+    for (;;) {
+      res = scores.front ();
+      if (!val (res)) break;
+      (void) scores.pop_front ();
+    }
   }
   LOG ("next decision variable %d with score %g", res, score (res));
   return res;
