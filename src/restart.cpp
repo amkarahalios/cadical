@@ -101,6 +101,9 @@ void Internal::restart () {
   stats.restartlevels += level;
   if (stable) stats.restartstable++;
   LOG ("restart %" PRId64 "", stats.restarts);
+  LOG ("set make merge decision back to false");
+  makeMergeDecisions = false;
+  mergeDecisions.clear();
   backtrack (reuse_trail ());
 
   lim.restart = stats.conflicts + opts.restartint;
