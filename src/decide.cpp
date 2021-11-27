@@ -49,8 +49,34 @@ int Internal::next_decision_variable_on_queue () {
   }
   else
   {
-    while (val(res)|| (res > (numColors*numLiterals)))
-      res = link (res).prev, searched++;
+    // will need to decide on the merge literals at some point?
+    // needs appropriate mapping
+    int anyRes = res;
+    int searchedAfter = 0;
+    while (val(anyRes))
+    {
+      anyRes = link (anyRes).prev, searched++;
+    }
+    int aRes = anyRes;
+    if (i2e[std::abs(anyRes)] > numColors*numLiterals)
+    {
+      while (val(anyRes) || i2e[std::abs(anyRes)] > numColors * numLiterals)
+      {
+        anyRes = link (anyRes).prev;
+        searched++;
+        searchedAfter++;
+      }
+    }
+
+    if (anyRes)
+    {
+      res = anyRes;
+    }
+    else
+    {
+      res = aRes;
+      searched = searched - searchedAfter;
+    }
   }
 
   if (searched) {
