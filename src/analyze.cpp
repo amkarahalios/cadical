@@ -753,7 +753,7 @@ void Internal::analyze () {
 
     // if negative, add to ourClause
     // if positive, add reason to currentEndLiterals
-    if ((someLiteral < 0) || (std::abs(someLiteral) > (numLiterals * numColors)))
+    if ((someLiteral < 0) || (i2e[std::abs(someLiteral)] > (numLiterals * numColors)))
     {
       ourClause.push_back(someLiteral);
       currentEndLiterals.erase(someLiteral);
