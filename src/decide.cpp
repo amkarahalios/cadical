@@ -19,15 +19,16 @@ int Internal::next_decision_variable_on_queue () {
   {
     while (doNotUseDecision && (!mergeDecisions.empty()))
     {
-      res = mergeDecisions.back();
+      int newRes = mergeDecisions.back();
       mergeDecisions.pop_back();
  
-      if ((vals[vidx(res)] != 0) || (vals[-vidx(res)] != 0))
+      if ((vals[vidx(newRes)] != 0) || (vals[-vidx(newRes)] != 0))
       {
-        LOG("skip change because already set: %d", res);
+        LOG("skip change because already set: %d", newRes);
       }
       else
       {
+        res = newRes;
         doNotUseDecision = false;
       }
     }
@@ -98,15 +99,16 @@ int Internal::next_decision_variable_with_best_score () {
   {
     while (doNotUseDecision && (!mergeDecisions.empty()))
     {
-      res = mergeDecisions.back();
+      int newRes = mergeDecisions.back();
       mergeDecisions.pop_back();
  
-      if ((vals[vidx(res)] != 0) || (vals[-vidx(res)] != 0))
+      if ((vals[vidx(newRes)] != 0) || (vals[-vidx(newRes)] != 0))
       {
-        LOG("skip change because already set: %d", res);
+        LOG("skip change because already set: %d", newRes);
       }
       else
       {
+        res = newRes;
         doNotUseDecision = false;
       }
     }
