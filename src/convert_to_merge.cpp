@@ -37,14 +37,14 @@ std::vector<int> convert_to_merge_variable(std::vector<int> literals, int number
         return result;
     }
 
-    if (numNotMergeLits == 1)
-    {
-        for (int lit : literals)
-        {
-          result.push_back(lit);
-        }
-        return result;
-    }
+    //if (numNotMergeLits == 1)
+    //{
+    //    for (int lit : literals)
+    //    {
+    //      result.push_back(lit);
+    //    }
+    //    return result;
+    //}
 
     std::vector<int> OneOfEachColor;
     // add positive merge variables for vertices with the same color
