@@ -887,11 +887,12 @@ void Internal::analyze () {
     }
   }
 
-  if ((uipLevel == 0) && (uipLits.empty()) && mergeClause.size() == 1)
+  //if ((uipLevel == 0) && (uipLits.empty()) && (mergeClause.size() == 1))
+  if ((uipLevel == 0) && (uipLits.empty()))
   {
-    uipLits.push_back(mergeClause[0]);
-    uip = 0;
     LOG("Special Case 1 - empty");
+    //uipLits.push_back(mergeClause[0]);
+    uip = 0;
   }
   else
   {
