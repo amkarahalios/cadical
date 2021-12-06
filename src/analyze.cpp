@@ -226,7 +226,7 @@ inline void Internal::bump_clause (Clause * c) {
 // called 'glue', or 'LBD').
 
 inline void
-Internal::analyze_literal (int lit, int & open, std::set<int>& currentEndLiterals) {
+Internal::analyze_literal (int lit, int & open, std::set<int>& currentEndLiterals, bool addSameLevel) {
   assert (lit);
   Flags & f = flags (lit);
   if (f.seen) return;
@@ -234,11 +234,12 @@ Internal::analyze_literal (int lit, int & open, std::set<int>& currentEndLiteral
   if (!v.level) return;
   assert (val (lit) < 0);
   assert (v.level <= level);
-  if (v.level < level)
+  if ((v.level < level) || (addSameLevel && (v.level == level)))
   {
     currentEndLiterals.insert(lit);
     //clause.push_back(lit);
   }
+
   Level & l = control[v.level];
   if (!l.seen.count++) {
     LOG ("found new level %d contributing to conflict", v.level);
@@ -252,12 +253,12 @@ Internal::analyze_literal (int lit, int & open, std::set<int>& currentEndLiteral
 }
 
 inline void
-Internal::analyze_reason (int lit, Clause * reason, int & open, std::set<int>& endLiterals) {
+Internal::analyze_reason (int lit, Clause * reason, int & open, std::set<int>& endLiterals, bool addSameLevel) {
   assert (reason);
   bump_clause (reason);
   for (const auto & other : *reason)
     if (other != lit)
-      analyze_literal (other, open, endLiterals);
+      analyze_literal (other, open, endLiterals, addSameLevel);
 }
 
 /*------------------------------------------------------------------------*/
@@ -720,7 +721,7 @@ void Internal::analyze () {
 
   std::set<int> currentEndLiterals;
   for (;;) {
-    analyze_reason (uip, reason, open, currentEndLiterals);
+    analyze_reason (uip, reason, open, currentEndLiterals, false);
     uip = 0;
     while (!uip) {
       assert (i > 0);
@@ -728,7 +729,6 @@ void Internal::analyze () {
       if (!flags (lit).seen) continue;
       if (var (lit).level == level) uip = lit;
     }
-    // new stopping criteria is all positive literals in clause
     if (!--open) break;
     reason = var (uip).reason;
     LOG (reason, "analyzing %d reason", uip);
@@ -763,7 +763,7 @@ void Internal::analyze () {
     {
       LOG ("analyze literal: %d", someLiteral);
       reason = var (someLiteral).reason;
-      analyze_reason (someLiteral, reason, open, currentEndLiterals);
+      analyze_reason (someLiteral, reason, open, currentEndLiterals, true);
       currentEndLiterals.erase(someLiteral);
     }
   }
@@ -887,11 +887,12 @@ void Internal::analyze () {
     }
   }
 
-  if ((uipLevel == 0) && (uipLits.empty()) && mergeClause.size() == 1)
+  //if ((uipLevel == 0) && (uipLits.empty()) && (mergeClause.size() == 1))
+  if ((uipLevel == 0) && (uipLits.empty()))
   {
-    uipLits.push_back(mergeClause[0]);
-    uip = 0;
     LOG("Special Case 1 - empty");
+    //uipLits.push_back(mergeClause[0]);
+    uip = 0;
   }
   else
   {

@@ -82,6 +82,12 @@ void Internal::backtrack (int new_level) {
   LOG ("backtracking to decision level %d with decision %d and trail %zd",
     new_level, control[new_level].decision, assigned);
 
+  //if (new_level == 0)
+  //{
+  //  makeMergeDecisions = false;
+  //  mergeDecisions.clear();
+  //}
+
   const size_t end_of_trail = trail.size ();
   size_t i = assigned, j = i;
 
