@@ -291,8 +291,11 @@ std::vector<std::set<int> > parse_proof_file(std::string proofFileName, int numV
   std::vector<std::set<int> > proof;
   std::string line;
   std::ifstream infile(proofFileName);
+  // int count = 0;
   while (std::getline(infile, line))
   {
+    // count++;
+    // std::cout << "proof in " << count << std::endl;
     if (line[0] == 'd')
     {
       continue;
@@ -613,6 +616,20 @@ std::pair<bool, std::set<int> > conflictAfterOp(std::set<int> ops, std::vector<s
   return std::make_pair(false, ops);
 }
 
+bool negates(std::set<int> prev, std::set<int> cur)
+{
+  bool neg = true;
+  for (int i:prev)
+  {
+    if (cur.find(-i)==cur.end())
+    {
+      neg = false;
+      break;
+    }
+  }
+  return neg;
+}
+
 bool verify_proof(std::vector<std::set<int> > proof, int numVertex, int numColors, std::vector<std::vector<bool> > edgeMatrix)
 {
   std::set<int> emptyClause;
@@ -655,6 +672,11 @@ bool verify_proof(std::vector<std::set<int> > proof, int numVertex, int numColor
         // std::cout <<"here 4" <<std::endl;
         for (int l = i - 1; l >= 0; l--)
         {
+          if (negates(proof[l],cur_op))
+          {
+            foundConflict = true;
+            break;
+          }
           int diff = set_one_diff(proof[l], cur_op);
           // std::cout << "diff is " << diff << std::endl;
           if (diff && (cur_op.find(-diff) == cur_op.end()))
