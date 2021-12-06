@@ -33,6 +33,9 @@ void Internal::reset_noccs () {
   assert (!max_var || !ntab.empty ());
   erase_vector (ntab);
   LOG ("reset two-sided occurrence counters");
+
+  makeMergeDecisions = false;
+  mergeDecisions.clear();
 }
 
 }
